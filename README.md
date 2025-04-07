@@ -1,1 +1,1 @@
-RUN this command: python3 main.py
+## RUN this command after installations: python3 main.py
