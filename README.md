@@ -1,1 +1,1 @@
-## RUN this command after installations: python3 main.py
+## RUN this command after pip installations: python3 main.py
