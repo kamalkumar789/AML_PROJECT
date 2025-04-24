@@ -28,7 +28,6 @@ class ImagesDataset(Dataset):
 
         try:
             image = Image.open(image_path+".jpg").convert('RGB')  
-            print(image)
         except Exception as e:
             print(f"Error loading image {image_path}: {e}")
             return None, None
