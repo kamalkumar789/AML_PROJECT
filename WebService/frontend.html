@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Melanoma Classifier</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Segoe UI', 'sans-serif'],
+          },
+          animation: {
+            fadeInUp: 'fadeInUp 0.6s ease-out',
+          },
+          keyframes: {
+            fadeInUp: {
+              '0%': { opacity: 0, transform: 'translateY(20px)' },
+              '100%': { opacity: 1, transform: 'translateY(0)' },
+            },
+          },
+        }
+      }
+    }
+  </script>
+</head>
+<body class="bg-gradient-to-tr from-[#1a4b5e] via-[#2c7a7b] to-[#38b2ac] min-h-screen font-sans flex items-center justify-center px-4">
+
+  <div class="bg-white/10 backdrop-blur-lg border border-white/20 shadow-2xl rounded-2xl w-full max-w-2xl p-10 text-white animate-fadeInUp">
+    <div class="mb-8 text-center">
+      <h1 class="text-3xl font-bold mb-2">Melanoma Detector</h1>
+      <p class="text-white/70 text-sm">Enter patient info and upload a lesion image for diagnosis.</p>
+    </div>
+
+    <form id="melanomaForm" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <!-- Image Upload -->
+      <div class="col-span-2">
+        <label class="block mb-2 text-sm font-medium">Upload Image</label>
+        <input type="file" id="imageInput" accept="image/*" required
+          class="block w-full bg-white/10 border border-white/30 text-white rounded-xl px-4 py-3 placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-purple-400" />
+        <img id="previewImage" class="mt-4 w-32 h-32 object-cover rounded-lg border border-white/30 hidden" />
+      </div>
+
+      <!-- Age -->
+      <div>
+        <label class="block mb-2 text-sm font-medium">Age</label>
+        <input type="number" id="age" placeholder="Patient age" min="0" max="120" required
+          class="w-full bg-white/10 border border-white/30 text-white rounded-xl px-4 py-3 placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-purple-400" />
+      </div>
+
+      <!-- Sex -->
+      <div>
+        <label class="block mb-2 text-sm font-medium">Sex</label>
+        <select id="sex" required
+          class="w-full bg-white/10 border border-white/30 text-white rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-purple-400">
+          <option value="">Select</option>
+          <option>Male</option>
+          <option>Female</option>
+          <option>Other</option>
+        </select>
+      </div>
+
+      <!-- Lesion Location -->
+      <div class="md:col-span-2">
+        <label class="block mb-2 text-sm font-medium">Lesion Location</label>
+        <input type="text" id="location" placeholder="e.g., Upper back, cheek" required
+          class="w-full bg-white/10 border border-white/30 text-white rounded-xl px-4 py-3 placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-purple-400" />
+      </div>
+
+      <!-- Submit Button -->
+      <div class="col-span-2">
+        <button type="submit" id="submitBtn"
+          class="w-full bg-teal-500 hover:bg-teal-600 active:scale-95 transition transform py-3 text-lg font-semibold rounded-xl shadow-lg">
+          Submit
+        </button>
+      </div>
+
+      <!-- Result Message -->
+      <div class="col-span-2 mt-4 text-center">
+        <p id="resultMessage" class="text-lg font-semibold text-white"></p>
+      </div>
+    </form>
+
+    <!-- Footer -->
+    <div class="text-center text-sm text-white/50 mt-10 border-t border-white/10 pt-6">
+      <p>APPLIED MACHINE LEARNING (EEEM068)</p>
+    </div>
+  </div>
+
+  <script>
+    const imageInput = document.getElementById('imageInput');
+    const previewImage = document.getElementById('previewImage');
+    const form = document.getElementById('melanomaForm');
+    const resultMessage = document.getElementById('resultMessage');
+
+    imageInput.addEventListener('change', () => {
+      const file = imageInput.files[0];
+      if (file) {
+        previewImage.src = URL.createObjectURL(file);
+        previewImage.classList.remove('hidden');
+      } else {
+        previewImage.classList.add('hidden');
+      }
+    });
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const image = imageInput.files[0];
+      if (!image) {
+        resultMessage.textContent = "Please upload an image.";
+        return;
+      }
+
+      const formData = new FormData();
+      formData.append('image', image);
+      formData.append('age', document.getElementById('age').value);
+      formData.append('sex', document.getElementById('sex').value);
+      formData.append('location', document.getElementById('location').value);
+
+      resultMessage.textContent = "Loading...";
+
+      try {
+        const response = await fetch('/predict', {
+          method: 'POST',
+          body: formData
+        });
+
+        if (!response.ok) {
+          throw new Error('Server error');
+        }
+
+        const data = await response.json();
+        resultMessage.textContent = `Diagnosis: ${data.diagnosis.toUpperCase()} (Confidence: ${data.confidence_score}%)`;
+      } catch (err) {
+        resultMessage.textContent = "Failed to get prediction. Please try again.";
+      }
+    });
+  </script>
+</body>
+</html>
