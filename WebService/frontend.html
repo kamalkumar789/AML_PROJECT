@@ -86,10 +86,66 @@
     <!-- Footer -->
     <div class="text-center text-sm text-white/50 mt-10 border-t border-white/10 pt-6">
       <p>APPLIED MACHINE LEARNING (EEEM068)</p>
+      <p>University of Surrey</p>
     </div>
+    
   </div>
 
   <script>
+    const imageInput = document.getElementById('imageInput');
+    const previewImage = document.getElementById('previewImage');
+    const form = document.getElementById('melanomaForm');
+    const resultMessage = document.getElementById('resultMessage');
+  
+    imageInput.addEventListener('change', () => {
+      const file = imageInput.files[0];
+      if (file) {
+        previewImage.src = URL.createObjectURL(file);
+        previewImage.classList.remove('hidden');
+      } else {
+        previewImage.classList.add('hidden');
+      }
+    });
+  
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+  
+      const image = imageInput.files[0];
+      if (!image) {
+        resultMessage.textContent = "Please upload an image.";
+        return;
+      }
+  
+      const formData = new FormData();
+      formData.append('image', image);
+      formData.append('age', document.getElementById('age').value);
+      formData.append('sex', document.getElementById('sex').value);
+      formData.append('lesion_location', document.getElementById('location').value);
+  
+      resultMessage.textContent = "Loading...";
+  
+      try {
+        const response = await fetch('http://131.227.65.157:5000/predict', {
+          method: 'POST',
+          body: formData
+        });
+  
+        if (!response.ok) {
+          throw new Error('Server error');
+        }
+  
+        const data = await response.json();
+        sessionStorage.setItem('predictionResult', JSON.stringify(data));
+        resultMessage.textContent = "";
+        window.location.href = 'result.html';
+      } catch (err) {
+        resultMessage.textContent = "Failed to get prediction. Please try again.";
+      }
+    });
+  </script>
+
+
+  <!-- <script>
     const imageInput = document.getElementById('imageInput');
     const previewImage = document.getElementById('previewImage');
     const form = document.getElementById('melanomaForm');
@@ -118,12 +174,12 @@
       formData.append('image', image);
       formData.append('age', document.getElementById('age').value);
       formData.append('sex', document.getElementById('sex').value);
-      formData.append('location', document.getElementById('location').value);
+      formData.append('lesion_location', document.getElementById('location').value);
 
       resultMessage.textContent = "Loading...";
 
       try {
-        const response = await fetch('/predict', {
+        const response = await fetch('http://131.227.65.147:5000/predict', {
           method: 'POST',
           body: formData
         });
@@ -138,6 +194,6 @@
         resultMessage.textContent = "Failed to get prediction. Please try again.";
       }
     });
-  </script>
+  </script> -->
 </body>
 </html>

@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Melanoma Prediction Result</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gradient-to-br from-[#1a4b5e] via-[#2c7a7b] to-[#38b2ac] min-h-screen flex items-center justify-center p-6 font-sans">
+  <div class="bg-white/10 backdrop-blur-lg border border-white/20 shadow-2xl rounded-2xl p-10 max-w-4xl w-full text-white text-center space-y-6">
+    <h1 class="text-3xl font-bold">Prediction Result</h1>
+    <div id="resultContent" class="text-lg text-white/90 space-y-2"></div>
+    <button onclick="history.back()" class="mt-6 bg-teal-500 hover:bg-teal-600 px-6 py-2 rounded-xl font-semibold">Go Back</button>
+  </div>
+
+  <script>
+    const resultData = JSON.parse(sessionStorage.getItem('predictionResult'));
+    const resultContent = document.getElementById('resultContent');
+
+    if (resultData) {
+      const { diagnosis, confidence_score, gradcam_images } = resultData;
+
+      resultContent.innerHTML = `
+        <p class="inline-block mr-4"><strong>Diagnosis:</strong> ${diagnosis.toUpperCase()}</p>
+        <p class="inline-block mr-4"><strong>Confidence:</strong> ${confidence_score}%</p>
+        <p class="inline-block"><strong>Model Used:</strong> Densenet-121</p>
+      `;
+
+      // Display Grad-CAM images in a custom format (2 images per row)
+      if (gradcam_images) {
+        resultContent.innerHTML += '<div class="mt-4"><p class="font-semibold">Grad-CAM Images:</p>';
+
+        // Dynamically generate images for each Grad-CAM block
+        const gradcamEntries = Object.entries(gradcam_images); // Get the key-value pairs from gradcam_images
+
+        // Loop through the blocks and display them in pairs of two
+        for (let i = 0; i < gradcamEntries.length; i += 2) {
+          resultContent.innerHTML += `
+            <div class="flex gap-4 mt-4">
+              <div class="w-1/2 my-2">
+                <p class="text-sm">Block: ${gradcamEntries[i][0]}</p>
+                <img src="data:image/png;base64,${gradcamEntries[i][1]}" alt="Grad-CAM Image for ${gradcamEntries[i][0]}" class="w-full h-auto rounded-md shadow-md">
+              </div>
+              ${gradcamEntries[i + 1] ? `
+                <div class="w-1/2 my-2">
+                  <p class="text-sm">Block: ${gradcamEntries[i + 1][0]}</p>
+                  <img src="data:image/png;base64,${gradcamEntries[i + 1][1]}" alt="Grad-CAM Image for ${gradcamEntries[i + 1][0]}" class="w-full h-auto rounded-md shadow-md">
+                </div>
+              ` : ''}
+            </div>
+          `;
+        }
+
+        resultContent.innerHTML += '</div>'; // Close the container
+      }
+
+    } else {
+      resultContent.textContent = 'No result found. Please submit a prediction first.';
+    }
+  </script>
+</body>
+</html>
